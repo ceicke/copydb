@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.description = 'Copydb is a gem that helps you to copy databases e.g. from a production database to your development database.'
   s.authors = ["Christoph Eicke"]
   s.email = 'eicke@yfu.de'
-  s.files = ["lib/copydb.rb","lib/railtie.rb","lib/tasks/copydb.rake"]
+  s.files = ["lib/copydb.rb","lib/tasks/copydb.rake"]
   s.homepage = 'https://github.com/ceicke/copydb'
 end
   
