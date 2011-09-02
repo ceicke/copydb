@@ -3,23 +3,35 @@ require 'yaml'
 require 'active_record'
 require 'active_support/core_ext/kernel/reporting'
 require 'rails/railtie'
+require 'fileutils'
+require 'faker'
 
 module CopyDb
   
   class DumpDb
     def dump
-      o = File.new(File.expand_path('tmp/copydb_dumped_data.yml'), "w+")
+      
+      anonymizer = CopyDb::Config.read_anonymize_config
+      
+      output = File.new(File.expand_path('db/copydb_dumped_data.yml'), "w+")
       yml = [self.schema_version]
       self.tables.each do |table|
-        puts "Dumping table: #{table}"
-        yml << self.table_dump(table)
+        if anonymizer.has_key?(table)
+          yml << self.table_dump_anonymous(table,anonymizer[table])
+        else
+          yml << self.table_dump(table)
+        end
       end
-      o.write(yml.to_yaml)
-      o.close
+      output.write(yml.to_yaml)
+      output.close
     end
     
     def tables
       ActiveRecord::Base.connection.tables.reject { |table| ['schema_info', 'schema_migrations'].include?(table) }
+    end
+    
+    def table_column_names(table)
+      ActiveRecord::Base.connection.columns(table).map { |c| c.name }
     end
     
     def table_dump(table)
@@ -32,6 +44,34 @@ module CopyDb
       yml
     end
     
+    def table_dump_anonymous(table,anonymize_column_configurations)
+      
+      column_names = Array.new
+      anonymizing_types = Array.new
+      
+      anonymize_column_configurations.each do |anonymize_column_configuration|
+        column_names << anonymize_column_configuration.keys[0]
+        anonymizing_types << anonymize_column_configuration.values[0]
+      end        
+      
+      rs = ActiveRecord::Base.connection.execute("SELECT * FROM #{table}")
+      yml = Array.new
+      yml << table
+      rs.each do |result|
+        puts result.length.inspect
+        result.each do |result_column,result_value|
+          
+          if column_names.include?(result_column)
+            anonymize_type = anonymizing_types[(column_names.index(result_column))]
+            yml << [result_column,CopyDb::Anonymizer.anonymize(anonymize_type)]
+          else
+            yml << result
+          end
+        end
+      end
+      yml
+    end
+    
     def schema_version
        ActiveRecord::Migrator.current_version
     end
@@ -39,23 +79,29 @@ module CopyDb
   
   class LoadDb
     def load
-      if FileTest.exists?(File.expand_path('tmp/copydb_dumped_data.yml'))
+      if FileTest.exists?(File.expand_path('db/copydb_dumped_data.yml'))
 
-        yml = YAML.load_file(File.expand_path('tmp/copydb_dumped_data.yml'))
-  
+        yml = YAML.load_file(File.expand_path('db/copydb_dumped_data.yml'))
 
         yml.each_with_index do |entry,i|
           if i == 0
-            next # check for schema version here
+            unless entry.to_s == self.schema_version.to_s
+              puts "ERROR: schema version mismatch"
+            end
+            next
           end
           unless entry[1].nil?
-            quoted_column_names = entry[1].each_key.to_a.map { |column| ActiveRecord::Base.connection.quote_column_name(column) }.join(',')
+            columns = entry[1].each_key.to_a
+            quoted_column_names = columns.map { |column| ActiveRecord::Base.connection.quote_column_name(column) }.join(',')
             
             for i in 1..(entry.length-1)
-              quoted_column_values = entry[i].each_value.to_a.map { |record| ActiveRecord::Base.connection.quote(record) }.join(',')
+              entries = entry[i].each_value.to_a
+              quoted_column_values = entries.map { |record| ActiveRecord::Base.connection.quote(record) }.join(',')
               
               sql_string = "INSERT INTO #{entry[0]} (#{quoted_column_names}) VALUES (#{quoted_column_values});"
-              ActiveRecord::Base.connection.execute(sql_string)
+              
+              #puts sql_string
+              #ActiveRecord::Base.connection.execute(sql_string)
             end            
           end
         end
@@ -67,6 +113,33 @@ module CopyDb
     
     def schema_version
        ActiveRecord::Migrator.current_version
+    end
+  end
+  
+  class Config    
+    def self.read_anonymize_config
+      if FileTest.exists?(File.expand_path('config/copydb_anonymize.yml'))
+        YAML.load_file(File.expand_path('config/copydb_anonymize.yml'))
+      else
+        Hash.new
+      end
+    end
+  end
+  
+  class Anonymizer
+    
+    Faker::Config.locale = "en"
+    
+    def self.anonymize(type)
+      if type == "name"
+        Faker::Name.name
+      elsif type == "first_name"
+        Faker::Name.first_name
+      elsif type == "last_name"
+        Faker::Name.last_name
+      else
+        Faker::Company.bs
+      end
     end
   end
   
