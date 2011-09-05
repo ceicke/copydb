@@ -52,22 +52,24 @@ module CopyDb
       anonymize_column_configurations.each do |anonymize_column_configuration|
         column_names << anonymize_column_configuration.keys[0]
         anonymizing_types << anonymize_column_configuration.values[0]
-      end        
+      end
       
       rs = ActiveRecord::Base.connection.execute("SELECT * FROM #{table}")
       yml = Array.new
       yml << table
       rs.each do |result|
-        puts result.length.inspect
-        result.each do |result_column,result_value|
+        resultHash = Hash.new
+        result.each do |result_column,result_value|          
           
           if column_names.include?(result_column)
             anonymize_type = anonymizing_types[(column_names.index(result_column))]
-            yml << [result_column,CopyDb::Anonymizer.anonymize(anonymize_type)]
+            resultHash[result_column] = CopyDb::Anonymizer.anonymize(anonymize_type)
           else
-            yml << result
+            resultHash[result_column] = result_value
           end
+                    
         end
+        yml << resultHash
       end
       yml
     end
