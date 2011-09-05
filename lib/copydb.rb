@@ -102,8 +102,7 @@ module CopyDb
               
               sql_string = "INSERT INTO #{entry[0]} (#{quoted_column_names}) VALUES (#{quoted_column_values});"
               
-              #puts sql_string
-              #ActiveRecord::Base.connection.execute(sql_string)
+              ActiveRecord::Base.connection.execute(sql_string)
             end            
           end
         end
@@ -139,6 +138,20 @@ module CopyDb
         Faker::Name.first_name
       elsif type == "last_name"
         Faker::Name.last_name
+      elsif type == "street_address"
+        Faker::Address.street_address
+      elsif type == "city"
+        Faker::Address.city
+      elsif type == "zip"
+        Faker::Address.zip_code
+      elsif type == "phone"
+        Faker::PhoneNumber.phone_number
+      elsif type == "email"
+        Faker::Internet.free_email
+      elsif type == "company"
+        Faker::Company.name
+      elsif type == "date"
+        "2011-11-11"
       else
         Faker::Company.bs
       end
