@@ -17,8 +17,8 @@ Simply add it to your Gemfile and run the bundle ocmmand
 
 Once you have included CopyDb into your Rails project, you will have two new rake tasks, `rake db:copydb:dump` and `rake db:copydb:load`
 
-    rake db:copydb:dump -> Dumps the content of the database to tmp/copydb_dumped_data.yml
-    rake db:copydb:load -> Loads the content of the database from tmp/copydb_dumped_data.yml
+    rake db:copydb:dump -> Dumps the content of the database to db/copydb_dumped_data.yml
+    rake db:copydb:load -> Loads the content of the database from db/copydb_dumped_data.yml
   
 Please be aware that you have to have an empty database with in at least the same schema version as the database is in that you got the data from.
 
