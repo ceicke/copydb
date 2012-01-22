@@ -13,7 +13,7 @@ module CopyDb
             
       anonymizer = CopyDb::Config.read_anonymize_config
       
-      output = Fil22e.new(File.expand_path('db/copydb_dumped_data.yml'), "w+")
+      output = File.new(File.expand_path('db/copydb_dumped_data-2.yml'), "w+")
       yml = [self.schema_version]
       self.tables.each do |table|
         if anonymizer.has_key?(table)
