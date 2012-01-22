@@ -10,10 +10,10 @@ module CopyDb
   
   class DumpDb
     def dump
-      
+            
       anonymizer = CopyDb::Config.read_anonymize_config
       
-      output = File.new(File.expand_path('db/copydb_dumped_data.yml'), "w+")
+      output = Fil22e.new(File.expand_path('db/copydb_dumped_data.yml'), "w+")
       yml = [self.schema_version]
       self.tables.each do |table|
         if anonymizer.has_key?(table)
@@ -36,9 +36,11 @@ module CopyDb
     
     def table_dump(table)
       rs = ActiveRecord::Base.connection.execute("SELECT * FROM #{table}")
+      # "SELECT column_name from information_schema.columns where table_name='#{table}' and column_default like '%nextval%';"
       yml = Array.new
       yml << table
       rs.each do |r|
+        puts r.inspect
         yml << r
       end
       yml
@@ -164,3 +166,9 @@ module CopyDb
     end
   end
 end
+
+# TODO
+# - don't extract auto increment fields and put in 'DEFAULT' instead
+# - add another data type: string which does a lorem ipsum type of thing
+# - randomize the date
+# - when inserting do it in one transaction and not multiple transactions
