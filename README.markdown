@@ -38,6 +38,7 @@ While exporting the database, CopyDb can anonymize certain columns of your datab
     - zip: zip
     - phone: phone
     - email: email
+    - description: lorem
     
 After this example, here is an explanation:
 
@@ -56,6 +57,7 @@ Depending on your `column_type`, different data is generated. You can choose fro
 * phone: a phone number (e.g. (084)491-6537 x964)
 * email: an e-mail address of a free-mailer (e.g. dave.koss@gmail.com)
 * date: the date 2011-11-11
+* lorem: a sentence with 20 words
 
 ## Credits
 

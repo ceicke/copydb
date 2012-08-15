@@ -152,8 +152,10 @@ module CopyDb
         Faker::Company.name
       elsif type == "date"
         "2011-11-11"
+      elsif type == "lorem"
+	Faker::Lorem.sentence(20)
       else
-        Faker::Company.bs
+        Faker::Lorem.sentence
       end
     end
   end
