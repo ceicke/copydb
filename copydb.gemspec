@@ -1,7 +1,7 @@
 # encoding: utf-8
 Gem::Specification.new do |s|
   s.name  = 'copydb'
-  s.version = '0.2.0'
+  s.version = '0.3.0'
   s.date = '2012-08-15'
   s.summary = 'Copydb helps you synchronize your databases and can be configured to anonymize certain parts of a table'
   s.description = 'Copydb is a gem that helps you to copy databases e.g. from a production database to your development database. During the process it is possible to define columns in tables in which the data should be exchanged for fake data. This can be interesting in a scenario where you want to run your development machine with production data, but privacy laws (such as in Germany) prohibit you to use real data.'

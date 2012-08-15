@@ -93,17 +93,22 @@ module CopyDb
             next
           end
           unless entry[1].nil?
+            ActiveRecord::Base.connection.begin_db_transaction
             columns = entry[1].each_key.to_a
             quoted_column_names = columns.map { |column| ActiveRecord::Base.connection.quote_column_name(column) }.join(',')
             
             for i in 1..(entry.length-1)
               entries = entry[i].each_value.to_a
               quoted_column_values = entries.map { |record| ActiveRecord::Base.connection.quote(record) }.join(',')
+
+	      ActiveRecord::Base.connection.execute("ALTER TABLE #{entry[0]} DISABLE TRIGGER ALL;")
               
               sql_string = "INSERT INTO #{entry[0]} (#{quoted_column_names}) VALUES (#{quoted_column_values});"
-              
               ActiveRecord::Base.connection.execute(sql_string)
+
+	      ActiveRecord::Base.connection.execute("ALTER TABLE #{entry[0]} ENABLE TRIGGER ALL;")
             end            
+	    ActiveRecord::Base.connection.commit_db_transaction
           end
         end
       else
